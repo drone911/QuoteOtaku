@@ -1,0 +1,8 @@
+spring.application.name=quoteotaku
+spring.kafka.bootstrap-servers=
+spring.elasticsearch.bootstrap-servers=
+spring.elasticsearch.user=
+spring.elasticsearch.password=
+spring.kafka.consumer.group-id=
+spring.kafka.consumer.auto-offset-reset=
+data.subtitles.directory=data/PreprocessedSubtitles
