@@ -1,6 +1,7 @@
 package com.drone911.quoteotaku.Configs;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -19,7 +20,7 @@ public class KafkaProducerConfig {
     private String bootstrapAddress;
 
     @Bean
-    public ProducerFactory<String, Map<String, Object>> producerFactory() {
+    public ProducerFactory<String, List<Map<String, Object>>> producerFactory() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -27,7 +28,7 @@ public class KafkaProducerConfig {
         return new DefaultKafkaProducerFactory<>(configs);
     }
     @Bean
-    public KafkaTemplate<String, Map<String, Object>> kafkaTemplate() {
+    public KafkaTemplate<String, List<Map<String, Object>>> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }
