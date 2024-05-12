@@ -1,0 +1,3 @@
+[submodule "QuoteOtakuFrontend"]
+	path = QuoteOtakuFrontend
+	url = https://github.com/drone911/QuoteOtakuFrontend
