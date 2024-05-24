@@ -1,6 +1,6 @@
-# QuoteOtaku (Work In Progress)
+# QuoteOtaku
 
-A reverse search engine on anime quotes from over 4000 different anime episodes. 
+A reverse search engine on anime quotes in over 4000 different anime episodes. It's currently work in progress.
 
 # Updates
 
