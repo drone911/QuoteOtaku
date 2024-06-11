@@ -36,7 +36,7 @@ public class ConsumeSubtitles {
             subtitlesToSave.add(subtitleToSave);
             count++;
             if (count % 5000 == 0) {
-                System.out.print("[Debug] Saved " + count + " conversations in Elastic");
+                System.out.print("[Debug] Saved " + count + " conversations in Elastic\n");
             }    
         }
         elasticsearchOperations.save(subtitlesToSave);

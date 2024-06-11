@@ -25,7 +25,7 @@ public class QuoteotakuApplication implements ApplicationRunner {
 
     public void run(ApplicationArguments args) throws Exception {
         Stream<Path> pathsStream = readSubtitles.getFileNames();
-        pathsStream.forEach(fileName -> {
+        pathsStream.limit(500).forEach(fileName -> {
             var subtitlesMap = readSubtitles.processFile(fileName);
             // Split to accomodate kafka's max allowed element
             List<Map<String, Object>> subtitleStart = new ArrayList<>(subtitlesMap.subList(0, subtitlesMap.size()/3));
