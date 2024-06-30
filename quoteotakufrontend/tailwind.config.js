@@ -1,3 +1,5 @@
+const colors = require('tailwindcss/colors')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -5,7 +7,14 @@ module.exports = {
     'node_modules/flowbite-react/dist/esm/**/*.js',
   ],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        collage: "url('../public/background.jpg')"
+      },
+      colors: {
+        'primary': colors.fuchsia
+      }
+    },
   },
   plugins: [
     require('flowbite/plugin')
