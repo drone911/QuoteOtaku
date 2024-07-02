@@ -3,8 +3,8 @@ import Sidebar from './components/Sidebar';
 import Main from './components/Main';
 
 export default function Landing() {
-    const [showSidebar, setShowSidebar] = React.useState(true);
-    const [isSmallScreen, setIsSmallScreen] = React.useState(window.innerWidth <= '640');
+    const [isSmallScreen, setIsSmallScreen] = React.useState(window.outerWidth <= '768');
+    const [showSidebar, setShowSidebar] = React.useState(!isSmallScreen);
 
     const openSidebar = () => {
         console.log("Open")
@@ -17,7 +17,7 @@ export default function Landing() {
 
     React.useEffect(() => {
         function handleResize() {
-            setIsSmallScreen(window.innerWidth <= '640');
+            setIsSmallScreen(window.innerWidth <= '768');
         }
 
         window.addEventListener("resize", handleResize);
@@ -31,7 +31,7 @@ export default function Landing() {
                 <Sidebar />
             </div>
             <div onClick={isSmallScreen && showSidebar ? closeSidebar : undefined}
-                className={`${showSidebar ? 'md:w-8/12' : ''} absolute right-0 w-screen z-0 bg-cover bg-center bg-no-repeat  h-full transition-all
+                className={`${showSidebar ? 'md:w-8/12' : ''} absolute right-0 w-screen z-0 bg-cover bg-center bg-no-repeat h-full transition-all
                 ${isSmallScreen && showSidebar ? 'opacity-50' : ''}`}
                 style={{
                     "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(background.jpg)",

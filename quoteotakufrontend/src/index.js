@@ -7,6 +7,9 @@ import {
 } from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
 
+import createStore from './configureStore'
+import { Provider } from 'react-redux';
+
 import App from './routes/App';
 import Landing from './routes/Landing';
 
@@ -26,10 +29,20 @@ const router = createBrowserRouter([
   },
 ]);
 
+const store = createStore();
+
+store.subscribe(() => {
+  const { chats } = store.getState();
+
+  localStorage.setItem('chats', JSON.stringify(chats.value));
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
   </React.StrictMode>
 );
 

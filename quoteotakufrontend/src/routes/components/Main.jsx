@@ -17,7 +17,6 @@ export default function Main({ openSidebar, closeSidebar, showSidebar }) {
                     </svg>
                 </button>
             </div>
-
             <ReverseSearch></ReverseSearch>
         </React.Fragment>
     );
