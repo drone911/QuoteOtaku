@@ -1,7 +1,7 @@
 import React from 'react';
 import ReverseSearch from './ReverseSearch';
 
-export default function Main({ openSidebar, closeSidebar, showSidebar }) {
+export default function Main({ openSidebar, closeSidebar, showSidebar, activeSearch }) {
     return (
         <React.Fragment>
 
@@ -17,7 +17,7 @@ export default function Main({ openSidebar, closeSidebar, showSidebar }) {
                     </svg>
                 </button>
             </div>
-            <ReverseSearch></ReverseSearch>
+            <ReverseSearch activeSearch={activeSearch}></ReverseSearch>
         </React.Fragment>
     );
 };

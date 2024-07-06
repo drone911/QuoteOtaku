@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 
-import chatReducer from './reducers/uploadedFilesSlice'
+import chatReducer from './reducers/chatsFileSlice'
 
 export default function createStore(preloadedState) {
     const middlewares = [thunk]
