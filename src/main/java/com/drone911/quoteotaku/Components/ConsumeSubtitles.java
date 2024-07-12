@@ -9,7 +9,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.drone911.quoteotaku.Repositories.Subtitle;
+import com.drone911.quoteotaku.Models.Subtitle;
 
 @Component
 public class ConsumeSubtitles {
@@ -25,13 +25,11 @@ public class ConsumeSubtitles {
         for (var subtitle : subtitles) {
             Subtitle subtitleToSave = new Subtitle();
             subtitleToSave.setId(count);
-            subtitleToSave.setStart((String) subtitle.get("start"));
-            subtitleToSave.setEnd((String) subtitle.get("end"));
+            subtitleToSave.setStart(Integer.valueOf((String) subtitle.get("start")));
+            subtitleToSave.setEnd(Integer.valueOf((String) subtitle.get("end")));
             subtitleToSave.setFileName((String) subtitle.get("fileName"));
             subtitleToSave.setAnimeName((String) subtitle.get("animeName"));
             subtitleToSave.setAnimeEpisode((String) subtitle.get("animeEpisode"));
-            subtitleToSave.setSubtitle((String) subtitle.get("conversation"));
-            subtitleToSave.setSubtitle((String) subtitle.get("conversation"));
             subtitleToSave.setSubtitle((String) subtitle.get("conversation"));
             subtitlesToSave.add(subtitleToSave);
             count++;

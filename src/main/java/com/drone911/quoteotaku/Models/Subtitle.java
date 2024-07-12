@@ -1,4 +1,4 @@
-package com.drone911.quoteotaku.Repositories;
+package com.drone911.quoteotaku.Models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -23,11 +23,11 @@ public class Subtitle {
     @Field(type = FieldType.Constant_Keyword)
     private String animeEpisode;
 
-    @Field(type = FieldType.Constant_Keyword)
-    private String start;
+    @Field(type = FieldType.Integer)
+    private Integer start;
     
-    @Field(type = FieldType.Constant_Keyword)
-    private String end;
+    @Field(type = FieldType.Integer)
+    private Integer end;
 
     @Field(type = FieldType.Text)
     private String subtitle;
