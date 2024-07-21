@@ -1,4 +1,6 @@
 spring.application.name=quoteotaku
+spring.application.corsOrigin=
+
 data.subtitles.directory=data/PreprocessedSubtitles
 controller.subtitles.correspondingSubtitlesAboveorBelows=
 
