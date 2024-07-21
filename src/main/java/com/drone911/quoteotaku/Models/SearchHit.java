@@ -1,10 +1,12 @@
 package com.drone911.quoteotaku.Models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,10 +26,6 @@ public class SearchHit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "chat_line_Id", nullable = false)
-    private ChatLine chatLine;
-
     @Column
     private String animeName;
 
@@ -37,7 +35,6 @@ public class SearchHit {
     @Column
     private Integer animeLength;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "searchHitSubtitle", nullable = false)
-    private List<SearchHitSubtitle> searchHitSubtitle;
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<SearchHitSubtitle> searchHitSubtitle = new ArrayList<SearchHitSubtitle>();
 }

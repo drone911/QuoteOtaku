@@ -1,11 +1,13 @@
 package com.drone911.quoteotaku.Models;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
@@ -24,8 +26,8 @@ public class Chat {
     private Instant creationTimestamp;
 
     @Column
-    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
-    private List<ChatLine> chatLines;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ChatLine> chatLines = new ArrayList<ChatLine>();
 
     public Chat(String chatId, Instant creationTimestamp) {
         this.id = chatId;

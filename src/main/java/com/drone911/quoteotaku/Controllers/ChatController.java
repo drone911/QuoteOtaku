@@ -6,34 +6,33 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.MultiGetItem;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.PageRequest;
 
-import com.drone911.quoteotaku.Models.Chat;
-import com.drone911.quoteotaku.Models.ChatLine;
-import com.drone911.quoteotaku.Models.SearchHit;
-import com.drone911.quoteotaku.Models.SearchHitSubtitle;
-import com.drone911.quoteotaku.Models.Subtitle;
-import com.drone911.quoteotaku.Repositories.ChatLineRepository;
-import com.drone911.quoteotaku.Repositories.ChatRepository;
-import com.drone911.quoteotaku.Repositories.SearchHitRepository;
-import com.drone911.quoteotaku.Repositories.SearchHitSubtitleRepository;
+import com.drone911.quoteotaku.Models.*;
+import com.drone911.quoteotaku.Repositories.*;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @RestController
 public class ChatController {
+    @Value(value = "")
+    private String corsOrigin;
+
     @Value(value = "${controller.subtitles.correspondingSubtitlesAboveorBelow}")
     private Integer correspondingSubtitlesAboveOrBelow;
+
+    @Value(value = "${controller.subtitles.maxPageSize}")
+    private Integer maxPageSize;
+
+    @Value(value = "${controller.subtitles.defaultPageSize}")
+    private Integer defaultPageSize;
 
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
@@ -55,6 +54,7 @@ public class ChatController {
             @RequestBody ChatQuery chatQuery) {
 
         SearchHits<Subtitle> hits = query(chatQuery);
+
         HashMap<String, Object> queryResult = new HashMap<>();
 
         Chat chat = chatRepository.findById(chatId).orElse(null);
@@ -62,29 +62,43 @@ public class ChatController {
             chat = chatRepository.save(new Chat(chatId, Instant.now()));
         }
 
-        List<SearchHit> searchHits = createSearchHits(hits);
         ChatLine chatLine = new ChatLine();
         chatLine.setTimestamp(Instant.now());
-        chatLine.setChat(chat);
         chatLine.setSearchMessage(chatQuery.query);
-        chatLine.setSearchHits(searchHits);
-        chatLineRepository.save(chatLine);
-
-        queryResult.put("result", searchHits);
+        chatLine = chatLineRepository.save(chatLine);
+        chat.getChatLines().add(chatLine);
+        createSearchHits(hits, chatLine);
+        chatLine = chatLineRepository.findById(chatLine.getId()).orElse(null);
+        queryResult.put("result", chatLine);
         return queryResult;
     }
 
-    @GetMapping(value = "/chat/{chatId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/chat/{chatId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public HashMap<String, Object> chatGet(@PathVariable("chatId") String chatId,
-            @RequestParam("pageSize") Integer pageSize, @RequestParam("pageOffsetEnd") Integer pageOffsetEnd) {
+            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+            @RequestParam(value = "pageOffsetEnd", required = false) Integer pageOffsetEnd) {
+
+        if (pageSize == null) {
+            pageSize = defaultPageSize;
+        } else {
+            if (pageSize > maxPageSize) {
+                pageSize = maxPageSize;
+            }
+        }
+        if (pageOffsetEnd == null) {
+            pageOffsetEnd = 0;
+        }
 
         HashMap<String, Object> queryResult = new HashMap<>();
         Chat chat = chatRepository.findById(chatId).orElse(null);
         if (chat == null) {
-            chat = chatRepository.save(new Chat(chatId, Instant.now()));
+            queryResult.put("result", chat);
+        } else {
+            chat.setChatLines(
+                    chatLineRepository.findByChat(chat, PageRequest.of(pageOffsetEnd, pageSize))
+                            .getContent());
+            queryResult.put("result", chat);
         }
-        chat.getChatLines();
-        queryResult.put("result", chat);
         return queryResult;
 
     }
@@ -95,14 +109,14 @@ public class ChatController {
         return elasticsearchOperations.search(query, Subtitle.class);
     }
 
-    private List<SearchHit> createSearchHits(SearchHits<Subtitle> hits) {
+    private List<SearchHit> createSearchHits(SearchHits<Subtitle> hits, ChatLine chatLine) {
         List<SearchHit> searchHits = hits.map(hit -> {
             SearchHit searchHit = new SearchHit();
             Subtitle subtitle = hit.getContent();
             searchHit.setAnimeEpisode(subtitle.getAnimeEpisode());
             searchHit.setAnimeName(subtitle.getAnimeName());
             searchHit.setAnimeLength(123);
-            searchHit.setChatLine(null);
+            chatLine.getSearchHits().add(searchHit);
             return searchHit;
         }).toList();
         searchHits = searchHitRepository.saveAll(searchHits);
@@ -126,26 +140,26 @@ public class ChatController {
         Integer hitId = subtitle.getId();
 
         List<String> correspondingIds = IntStream.range(hitId - this.correspondingSubtitlesAboveOrBelow - 1, hitId - 1)
-                .mapToObj(i -> String.valueOf(i)).toList();
+                .mapToObj(i -> String.valueOf(i)).collect(Collectors.toList());
         correspondingIds.add(String.valueOf(hitId));
         correspondingIds.addAll(IntStream.range(hitId + 1, hitId + 1 + this.correspondingSubtitlesAboveOrBelow)
                 .mapToObj(i -> String.valueOf(i)).toList());
         ;
+        Query query = NativeQuery.builder().withIds(correspondingIds).build();
+        List<MultiGetItem<Subtitle>> correspondingSubtitles = elasticsearchOperations.multiGet(query, Subtitle.class);
 
-        List<MultiGetItem<Subtitle>> correspondingSubtitles = elasticsearchOperations
-                .multiGet(CriteriaQuery.builder(null).withIds(
-                        correspondingIds).build(), Subtitle.class);
+        correspondingSubtitles.forEach(s -> System.out.println(s));
         List<SearchHitSubtitle> correspondingSubtitleModels = correspondingSubtitles.stream().map(s -> {
             Subtitle sub = s.getItem();
             SearchHitSubtitle searchHitSubtitle = new SearchHitSubtitle();
             searchHitSubtitle.setEndTime(sub.getEnd());
             searchHitSubtitle.setStartTime(sub.getStart());
-            searchHitSubtitle.setSearchHit(hit);
             searchHitSubtitle.setSubtitle(sub.getSubtitle());
-            searchHitSubtitle.setIsHit(sub.getId() == hitId);
+
+            searchHitSubtitle.setIsHit(sub.getId().compareTo(hitId) == 0);
+            hit.getSearchHitSubtitle().add(searchHitSubtitle);
             return searchHitSubtitle;
         }).toList();
-
         searchHitSubtitleRepository.saveAll(correspondingSubtitleModels);
 
     }

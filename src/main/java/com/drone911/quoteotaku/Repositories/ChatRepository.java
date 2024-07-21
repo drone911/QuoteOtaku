@@ -7,5 +7,4 @@ import com.drone911.quoteotaku.Models.Chat;
 
 @Repository
 public interface ChatRepository extends JpaRepository<Chat, String> {
-
 }

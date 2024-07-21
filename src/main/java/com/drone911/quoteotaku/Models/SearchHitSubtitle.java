@@ -35,7 +35,4 @@ public class SearchHitSubtitle {
     @Column
     private Boolean isHit;
 
-    @ManyToOne
-    @JoinColumn(name = "search_hit_id", nullable = false)
-    private SearchHit searchHit;
 }
