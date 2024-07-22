@@ -10,7 +10,7 @@ import reportWebVitals from './reportWebVitals';
 import createStore from './configureStore'
 import { Provider } from 'react-redux';
 
-import App from './routes/App';
+import App from './App';
 import Landing from './routes/Landing';
 
 import Error from './Error';
