@@ -33,15 +33,15 @@ export default function Landing() {
 
 
     return (
-        <div className="bg-black w-screen h-screen">
-            <div className={`${showSidebar ? '' : '-translate-x-full'} absolute h-full w-10/12 md:w-4/12 z-10 bg-stone-950 transition-all shadow-md shadow-gray-700`}>
+        <div className="bg-black w-screen h-screen flex flex-nowrap">
+            <div className={`${showSidebar ? '' : 'hidden w-0'} flex flex-col h-full z-10 whitespace-nowrap  bg-stone-950 transition-all shadow-md shadow-gray-700`}>
                 <Sidebar searches={searches} activeSearch={activeSearch} setActiveSearch={setActiveSearch} />
             </div>
             <div onClick={isSmallScreen && showSidebar ? closeSidebar : undefined}
-                className={`${showSidebar ? 'md:w-8/12' : ''} absolute right-0 w-screen z-0 bg-cover bg-center bg-no-repeat h-full transition-all
-                ${isSmallScreen && showSidebar ? 'opacity-50' : ''}`}
+                className={`${showSidebar ? '' : ''} grow w-screen z-0 bg-cover bg-center bg-no-repeat h-full transition-all
+                ${isSmallScreen && showSidebar ? 'opacity-50 absolute' : ''}`}
                 style={{
-                    "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(background.jpg)",
+                    "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url(background.jpg)",
                 }}>
                 <Main showSidebar={showSidebar} activeSearch={activeSearch} closeSidebar={closeSidebar} openSidebar={openSidebar}></Main>
             </div>
