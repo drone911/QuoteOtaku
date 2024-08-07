@@ -11,40 +11,90 @@ import exampleGetChatResponse from './exampleResponse/exampleGetChatResponse';
 export default function ReverseSearch({ activeSearch }) {
     const [isQuoteSearchFocused, setIsQuoteSearchFocused] = React.useState(false);
     const [searchText, setSearchText] = React.useState('');
-    const [searches, setSearches] = React.useState(new Set());
-    const [pageOffsetEnd, setpageOffsetEnd] = React.useState();
+    const [searches, setSearches] = React.useState(new Map());
+    const pageOffsetEndMap = new Map();
+    pageOffsetEndMap.set(activeSearch.id, 0);
+    const [pageOffsetEnd, setpageOffsetEnd] = React.useState(pageOffsetEndMap);
     const [loading, setLoading] = React.useState(false);
+    const [infiniteLoading, setInfiniteLoading] = React.useState(false);
     const chatParentRef = React.useRef(null);
     const dispatch = useDispatch();
+    const infiniteObserver = React.useRef();
 
     // Effect to autosize input search and get current chat content
     React.useEffect(() => {
         const search = document.getElementById('search');
         autosize(search);
+    }, []);
+
+
+    const lastPositionRef = React.useCallback((node) => {
+        if (infiniteLoading) {
+            return;
+        }
+        if (infiniteObserver.current) {
+            infiniteObserver.current.disconnect();
+        }
+
+        infiniteObserver.current = new IntersectionObserver((entries) => {
+            console.log(entries);
+            if (entries[0].isIntersecting) {
+                setNextPage();
+            }
+        })
+        if (node) {
+            infiniteObserver.current.observe(node);
+        }
+    }, [infiniteLoading])
+    React.useEffect(() => {
+        if (!pageOffsetEnd.has(activeSearch.id)) {
+            pageOffsetEnd.set(activeSearch.id, 0);
+            console.log(activeSearch.id);
+            setpageOffsetEnd(pageOffsetEnd);
+        }
+    }, [activeSearch]);
+
+    const setNextPage = () => {
+        pageOffsetEnd.set(activeSearch.id, pageOffsetEnd.get(activeSearch.id) + 1);
+        setpageOffsetEnd(pageOffsetEnd);
+    };
+
+    React.useEffect(() => {
+
+        const activePageOffsetEnd = pageOffsetEnd.get(activeSearch.id);
+        if (activePageOffsetEnd == undefined) {
+            return;
+        }
+        if (!activePageOffsetEnd != 0) {
+            setInfiniteLoading(true);
+        }
         axios.get(process.env.REACT_APP_API_PREFIX + "/chat/" + activeSearch.id, {
             params: {
                 pageSize: process.env.REACT_APP_CHAT_PAGE_SIZE,
-                pageOffsetEnd: pageOffsetEnd
+                pageOffsetEnd: activePageOffsetEnd
             }
         }).then((getChatResponse) => {
-            console.log(getChatResponse.data);
             if (getChatResponse.data.result != null) {
-                getChatResponse.data.result.chatLines.forEach((elem) => searches.add(elem));
+                if (searches.has(activeSearch.id)) {
+                    searches.set(activeSearch.id, [...searches.get(activeSearch.id), ...getChatResponse.data.result.chatLines]);
+                } else {
+                    searches.set(activeSearch.id, getChatResponse.data.result.chatLines);
+                }
             }
-            setSearches(searches);
+            console.log("Before Call");
+
+            console.log(searches);
+
+            setSearches(new Map([...searches]));
 
         }).catch((error) => {
-            // exampleGetChatResponse.chatLines.forEach((elem) => searches.add(elem));
-            // setSearches(searches);
             console.log(error);
         });
-
-
-        return async () => {
-            setSearches(new Set());
-            setpageOffsetEnd(0);
+        if (activePageOffsetEnd != 0) {
+            setInfiniteLoading(false);
         }
-    }, [activeSearch.id]);
+
+    }, [pageOffsetEnd.get(activeSearch.id)])
 
     // Effect to animate chat
     React.useEffect(() => {
@@ -75,8 +125,11 @@ export default function ReverseSearch({ activeSearch }) {
             const postChatResponse = await axios.post(process.env.REACT_APP_API_PREFIX + "/chat/" + activeSearch.id, {
                 "query": inputText
             });
-
-            searches.add(postChatResponse.data.result);
+            if (!searches.has(activeSearch.id)) {
+                searches.set(activeSearch.id, [postChatResponse.data.result]);
+            } else {
+                searches.get(activeSearch.id).push(postChatResponse.data.result);
+            }
             setSearches(searches);
         } catch (e) {
             console.log(e);
@@ -94,12 +147,32 @@ export default function ReverseSearch({ activeSearch }) {
     return (
         <div className='flex flex-col h-auto' style={{ height: "88%" }}>
             {/* Search Component */}
-            <div id="chat" className='grow' ref={chatParentRef}>
-                <Chat searches={searches} setSearchText={setSearchText} searchSubmit={searchSubmit}></Chat>
+            <style>
+                {/* {`
+                    #chat:after {
+                        content: "";
+                        position: sticky;
+                        display: block;
+                        opacity: 1;
+                        height: 200px;
+                        width: 100%;
+                        bottom: 0;
+                        left: 0;
+                        --mask: linear-gradient(to bottom, rgba(255,255,255, 1) 0, 
+                            rgba(255,255,255, 1) 45%, rgba(255,255,255, 255) 95%,
+                            rgba(255,255,255, 0) 0) 100% 50% / 100% 100% repeat-x;
+                        mask: var(--mask);
+                        -webkit-mask: var(--mask); 
+                        z-index: 5;
+                    }
+            `} */}
+            </style>
+            <div id="chat" className='grow overflow-y-scroll relative' ref={chatParentRef}>
+                <Chat searches={searches.get(activeSearch.id)} setSearchText={setSearchText} searchSubmit={searchSubmit} setNextPage={setNextPage} activeSearch={activeSearch} chatParentRef={chatParentRef} lastPositionRef={lastPositionRef}></Chat>
             </div>
             {/* Search Bar */}
-            <div className="flex justify-center items-center">
-                <div className="m-4 flex items-end flex-nowrap bg-white rounded-[40px] min-h-max w-10/12 max-w-screen-md min-h-14 px-3 py-2 mb-8">
+            <div className="flex justify-center items-center mb-4">
+                <div className="m-4 flex items-end flex-nowrap bg-white rounded-[40px] min-h-max w-10/12 max-w-screen-lg min-h-14 px-3 py-2 lg:mb-8">
                     {/* Filter Input */}
                     <div className="rounded-full hover:bg-gray-600/45">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8 m-2">
@@ -116,6 +189,6 @@ export default function ReverseSearch({ activeSearch }) {
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { act } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
-export default function Chat({ searches, setSearchText, searchSubmit }) {
+export default function Chat({ searches, setSearchText, searchSubmit, setNextPage, activeSearch, chatParentRef, lastPositionRef }) {
     const userSuggestions = ["Example Quote 1", "Example Quote 2", "Example Quote 3", "Example Quote 4"];
-    console.log("Searchuishfuin");
-    console.log(searches.size);
-    console.log(searches)
+    searches = searches == undefined ? [] : searches;
+
     const handleUserSuggestionClick = (e) => {
         e.preventDefault();
         const index = e.target.getAttribute("data-index");
         setSearchText(userSuggestions[index]);
         searchSubmit({ searchText: userSuggestions[index] });
     }
+    const chatBoxClassNames = "px-5 py-3 text-xl bg-zinc-700/90 font-semibold shadow-lg rounded-lg text-white";
     return (
         <React.Fragment>
             {/* Empty Chat Component */}
-            {searches.size === 0 &&
+            {searches.length == 0 &&
                 <div className='flex h-full justify-center items-center gap-8 flex-col'>
                     <div className='flex justify-center items-center p-4 rounded-lg shadow-lg'>
                         <img width="128px" className="m-4" src="logo-border512.png"></img>
@@ -39,27 +40,29 @@ export default function Chat({ searches, setSearchText, searchSubmit }) {
                 </div>
             }
             {/* Filled Chat Component*/}
-            {searches.size !== 0 &&
-
-                Array.from(searches).map((element, index) => {
-                    return (
-                        <div key={index} className='flex flex-col gap-2'>
-                            <div className="bg-white text-black self-end">
-                                {element.searchMessage}
-                            </div>
-                            {element.searchHits.length > 0 &&
-                                <div className="bg-white text-black self-start">
-                                    element.searchHists[0].animeName
+            {
+                <div className='container mx-auto max-w-screen-lg'>
+                    {
+                        searches.map((element, index) => {
+                            return (
+                                <div key={index} ref={index + 1 == searches.lenght ? lastPositionRef : null} className='flex flex-col gap-2 px-8 last:pb-4'>
+                                    <div className={`self-end ${chatBoxClassNames}`}>
+                                        {element.searchMessage}
+                                    </div>
+                                    {element.searchHits.length > 0 &&
+                                        <div className={`self-start ${chatBoxClassNames}`}>
+                                            {element.searchHits[0].animeName}
+                                        </div>
+                                    }
+                                    {element.searchHits.length == 0 &&
+                                        <div className={`self-start ${chatBoxClassNames}`}>
+                                            "No Hits"
+                                        </div>
+                                    }
                                 </div>
-                            }
-                            {element.searchHits.length == 0 &&
-                                <div className="bg-white text-black self-start">
-                                    "No Hits"
-                                </div>
-                            }
-                        </div>
-                    )
-                })}
+                            )
+                        })}
+                </div>}
         </React.Fragment>
     );
 };

@@ -6,7 +6,6 @@ import { selectChats } from "../../reducers/chatsFileSlice";
 export default function Sidebar({ searches, activeSearch, setActiveSearch }) {
 
     const navigateSearches = (e) => {
-        console.log(e);
         const toActivate = searches.length - 1 - e.target.getAttribute("data-index");
         setActiveSearch(searches[toActivate]);
     }
@@ -17,15 +16,15 @@ export default function Sidebar({ searches, activeSearch, setActiveSearch }) {
                 Quote Otaku
             </div>
             {/* Search Select */}
-            <div id="search-history" className="flex items-center gap-4 flex-col text-xl font-normal capitalize">
+            <div id="search-history" className="flex items-center gap-10 flex-col text-xl font-normal capitalize">
                 <div className="text-xl font-bold w-full text-left pl-4 mt-10 text-fuchsia-400/80">
                     History
                 </div>
-                <div className="flex items-center justify-center flex-col w-full">
+                <div className="flex items-center justify-center flex-col w-full py-2">
                     {searches.toReversed().map((element, index) => {
                         return (
                             <div id="search-history" key={index} data-index={index} onClick={navigateSearches} className={` 
-                            text-left cursor-pointer text-white rounded-md transition-colors flex justify-between items-center relative  pl-5 pr-3 gap-3 py-2 w-10/12 group hover:bg-gray-400/25
+                            text-left cursor-pointer text-white rounded-md transition-colors flex justify-between items-center relative pl-5 pr-3 gap-3 py-2 w-10/12 group hover:bg-gray-400/25
                             ${element.id == activeSearch.id ? 'bg-gray-400/25 font-semibold' : ''}`}
                             >
                                 <div id="search-history-title" className="grow max-w-64 truncate group-hover:font-semibold" data-index={index} >

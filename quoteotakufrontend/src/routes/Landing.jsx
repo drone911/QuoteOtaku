@@ -33,8 +33,8 @@ export default function Landing() {
 
 
     return (
-        <div className="bg-black w-screen h-screen flex flex-nowrap">
-            <div className={`${showSidebar ? '' : 'hidden w-0'} flex flex-col h-full z-10 whitespace-nowrap  bg-stone-950 transition-all shadow-md shadow-gray-700`}>
+        <div className="bg-black w-screen h-screen flex flex-nowrap overflow-x-hidden overflow-y-hidden">
+            <div className={`${showSidebar ? '' : 'hidden w-0'} flex flex-col h-full  z-10 whitespace-nowrap  bg-stone-950 transition-all shadow-md shadow-gray-700`}>
                 <Sidebar searches={searches} activeSearch={activeSearch} setActiveSearch={setActiveSearch} />
             </div>
             <div onClick={isSmallScreen && showSidebar ? closeSidebar : undefined}
