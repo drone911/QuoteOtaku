@@ -1,6 +1,10 @@
 spring.application.name=quoteotaku
 spring.application.corsOrigin=
 
+spring.application.malAPIBaseURL=
+spring.application.malAPIClientId=
+spring.application.malAPIClientSecret=
+
 data.subtitles.directory=data/PreprocessedSubtitles
 controller.subtitles.correspondingSubtitlesAboveorBelows=
 
