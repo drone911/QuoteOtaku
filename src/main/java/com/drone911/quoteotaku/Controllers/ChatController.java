@@ -144,7 +144,7 @@ public class ChatController {
         correspondingIds.add(String.valueOf(hitId));
         correspondingIds.addAll(IntStream.range(hitId + 1, hitId + 1 + this.correspondingSubtitlesAboveOrBelow)
                 .mapToObj(i -> String.valueOf(i)).toList());
-        ;
+
         Query query = NativeQuery.builder().withIds(correspondingIds).build();
         List<MultiGetItem<Subtitle>> correspondingSubtitles = elasticsearchOperations.multiGet(query, Subtitle.class);
 
