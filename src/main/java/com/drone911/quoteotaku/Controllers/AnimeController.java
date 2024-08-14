@@ -1,5 +1,6 @@
 package com.drone911.quoteotaku.Controllers;
 
+import java.util.Date;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -18,34 +19,52 @@ import com.drone911.quoteotaku.Repositories.AnimeListRepository;
 @RestController
 public class AnimeController {
 
-    private WebClient webClient;
+        private WebClient webClient;
 
-    @Autowired
-    private AnimeListRepository animeListRepository;
+        @Autowired
+        private AnimeListRepository animeListRepository;
 
-    @Autowired
-    public AnimeController(
-            @Value(value = "${spring.application.malAPIBaseURL}") final String malAPIBaseURL,
-            @Value(value = "${spring.application.malAPIClientId}") final String malAPIclientId,
-            @Value(value = "${spring.application.malAPIClientSecret}") final String malAPIclientSecret) {
-        this.webClient = WebClient.builder()
-                .baseUrl(malAPIBaseURL)
-                .defaultHeader("X-MAL-CLIENT-ID", malAPIclientId)
-                .defaultHeader(malAPIclientId, malAPIclientSecret)
-                .build();
-    }
+        @Autowired
+        public AnimeController(
+                        @Value(value = "${spring.application.malAPIBaseURL}") final String malAPIBaseURL,
+                        @Value(value = "${spring.application.malAPIClientId}") final String malAPIclientId,
+                        @Value(value = "${spring.application.malAPIClientSecret}") final String malAPIclientSecret) {
+                this.webClient = WebClient.builder()
+                                .baseUrl(malAPIBaseURL)
+                                .defaultHeader("X-MAL-CLIENT-ID", malAPIclientId)
+                                .defaultHeader(malAPIclientId, malAPIclientSecret)
+                                .build();
+        }
 
-    @GetMapping("/anime")
-    public Map<String, Object> animeGet(@RequestParam("q") String animeQuery) {
-        Optional<AnimeList> animeList = animeListRepository.findById(animeQuery);
+        @GetMapping("/anime")
+        public Map<String, Object> animeGet(@RequestParam("q") String animeQuery) {
+                Optional<AnimeList> animeListPresent = animeListRepository.findById(animeQuery);
+                if (animeListPresent.isPresent()) {
+                        AnimeList animeList = animeListPresent.get();
+                        // If the record is older than 100 days, then do not refresh record
+                        if ((new Date()).getTime() - animeList.getUpdatedAt().getTime() <= 100 * 60 * 60
+                                        * 24
+                                        * 100) {
+                                return Collections.singletonMap("result", animeList);
+                        }
+                        animeListRepository.delete(animeList);
+                }
 
-        AnimeListAPI animeListResponse = webClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/anime").queryParam("q", animeQuery).queryParam("limit", 3)
-                        .build())
-                .retrieve()
-                .bodyToMono(AnimeListAPI.class).block();
+                AnimeListAPI animeListResponse = webClient.get()
+                                .uri(uriBuilder -> uriBuilder.path("/anime").queryParam("q", animeQuery)
+                                                .queryParam("limit", 1)
+                                                .build())
+                                .retrieve()
+                                .bodyToMono(AnimeListAPI.class).block();
 
-        return Collections.singletonMap("result", animeList);
-    }
+                AnimeList animeList = new AnimeList(animeQuery, new Date(),
+                                animeListResponse.getData().stream().map(animeData -> {
+                                        return animeData.getNode();
+                                }).toList());
+
+                animeList = animeListRepository.save(animeList);
+
+                return Collections.singletonMap("result", animeList);
+        }
 
 }
