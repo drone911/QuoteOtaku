@@ -17,6 +17,7 @@ export default function ReverseSearch({ activeSearch }) {
     const [pageOffsetEnd, setpageOffsetEnd] = React.useState(pageOffsetEndMap);
     const [loading, setLoading] = React.useState(false);
     const [infiniteLoading, setInfiniteLoading] = React.useState(false);
+    const [hasMoreSearches, setHasMoreSearches] = React.useState(true);
     const chatParentRef = React.useRef(null);
     const dispatch = useDispatch();
     const infiniteObserver = React.useRef();
@@ -27,7 +28,7 @@ export default function ReverseSearch({ activeSearch }) {
         autosize(search);
     }, []);
 
-
+    // Callback for infinite scroll observer
     const lastPositionRef = React.useCallback((node) => {
         if (infiniteLoading) {
             return;
@@ -35,37 +36,43 @@ export default function ReverseSearch({ activeSearch }) {
         if (infiniteObserver.current) {
             infiniteObserver.current.disconnect();
         }
-
         infiniteObserver.current = new IntersectionObserver((entries) => {
-            console.log(entries);
             if (entries[0].isIntersecting) {
                 setNextPage();
             }
-        })
+        }, { threshold: 0.4 })
         if (node) {
             infiniteObserver.current.observe(node);
         }
     }, [infiniteLoading])
+
+    // Effect to initialize page get offset
     React.useEffect(() => {
         if (!pageOffsetEnd.has(activeSearch.id)) {
             pageOffsetEnd.set(activeSearch.id, 0);
-            console.log(activeSearch.id);
             setpageOffsetEnd(pageOffsetEnd);
         }
+        setHasMoreSearches(true);
     }, [activeSearch]);
 
     const setNextPage = () => {
+        if (!hasMoreSearches) {
+            return;
+        }
         pageOffsetEnd.set(activeSearch.id, pageOffsetEnd.get(activeSearch.id) + 1);
-        setpageOffsetEnd(pageOffsetEnd);
+        setpageOffsetEnd(new Map([...pageOffsetEnd]));
     };
 
     React.useEffect(() => {
-
+        setLoading(true);
+        if (loading) {
+            return;
+        }
         const activePageOffsetEnd = pageOffsetEnd.get(activeSearch.id);
         if (activePageOffsetEnd == undefined) {
             return;
         }
-        if (!activePageOffsetEnd != 0) {
+        if (activePageOffsetEnd != 0) {
             setInfiniteLoading(true);
         }
         axios.get(process.env.REACT_APP_API_PREFIX + "/chat/" + activeSearch.id, {
@@ -75,16 +82,22 @@ export default function ReverseSearch({ activeSearch }) {
             }
         }).then((getChatResponse) => {
             if (getChatResponse.data.result != null) {
+                if (getChatResponse.data.result.chatLines.length == 0) {
+
+                    setHasMoreSearches(false);
+                }
                 if (searches.has(activeSearch.id)) {
-                    searches.set(activeSearch.id, [...searches.get(activeSearch.id), ...getChatResponse.data.result.chatLines]);
+                    let mergedActiveSearches = [...searches.get(activeSearch.id), ...getChatResponse.data.result.chatLines]
+                        .filter((value, index, self) =>
+                            index === self.findIndex((t) => (
+                                t.id === value.id && t.searchMessage === value.searchMessage
+                            ))
+                        )
+                    searches.set(activeSearch.id, mergedActiveSearches);
                 } else {
                     searches.set(activeSearch.id, getChatResponse.data.result.chatLines);
                 }
             }
-            console.log("Before Call");
-
-            console.log(searches);
-
             setSearches(new Map([...searches]));
 
         }).catch((error) => {
@@ -93,7 +106,7 @@ export default function ReverseSearch({ activeSearch }) {
         if (activePageOffsetEnd != 0) {
             setInfiniteLoading(false);
         }
-
+        setLoading(false)
     }, [pageOffsetEnd.get(activeSearch.id)])
 
     // Effect to animate chat

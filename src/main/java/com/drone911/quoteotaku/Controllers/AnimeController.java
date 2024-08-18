@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.drone911.quoteotaku.Models.Anime.AnimeList;
 import com.drone911.quoteotaku.Models.Anime.AnimeListAPI;
+import com.drone911.quoteotaku.Models.Anime.AnimeNode;
 import com.drone911.quoteotaku.Repositories.AnimeListRepository;
 
 @RestController
@@ -59,6 +60,8 @@ public class AnimeController {
 
                 AnimeList animeList = new AnimeList(animeQuery, new Date(),
                                 animeListResponse.getData().stream().map(animeData -> {
+                                        AnimeNode animeNode = animeData.getNode();
+                                        animeNode.setAnimeId(animeNode.getId());
                                         return animeData.getNode();
                                 }).toList());
 

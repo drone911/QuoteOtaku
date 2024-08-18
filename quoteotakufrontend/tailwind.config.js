@@ -8,6 +8,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      animation: {
+        'spin-slow': 'spin 2s linear infinite',
+      },
       backgroundImage: {
         collage: "url('../public/background.jpg')"
       },

@@ -21,6 +21,8 @@ public class AnimeNode {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long animeId;
+
     private String title;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

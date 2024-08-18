@@ -1,10 +1,11 @@
 import React, { act } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import AnimeResults from './AnimeResults';
 
 export default function Chat({ searches, setSearchText, searchSubmit, setNextPage, activeSearch, chatParentRef, lastPositionRef }) {
     const userSuggestions = ["Example Quote 1", "Example Quote 2", "Example Quote 3", "Example Quote 4"];
     searches = searches == undefined ? [] : searches;
-
+    
     const handleUserSuggestionClick = (e) => {
         e.preventDefault();
         const index = e.target.getAttribute("data-index");
@@ -43,16 +44,14 @@ export default function Chat({ searches, setSearchText, searchSubmit, setNextPag
             {
                 <div className='container mx-auto max-w-screen-lg'>
                     {
-                        searches.map((element, index) => {
+                        searches.toReversed().map((element, index) => {
                             return (
-                                <div key={index} ref={index + 1 == searches.lenght ? lastPositionRef : null} className='flex flex-col gap-2 px-8 last:pb-4'>
+                                <div key={index} ref={index == 0 ? lastPositionRef : null} className='flex flex-col gap-2 px-8 last:pb-4' >
                                     <div className={`self-end ${chatBoxClassNames}`}>
                                         {element.searchMessage}
                                     </div>
                                     {element.searchHits.length > 0 &&
-                                        <div className={`self-start ${chatBoxClassNames}`}>
-                                            {element.searchHits[0].animeName}
-                                        </div>
+                                        <AnimeResults searchHits={element.searchHits}></AnimeResults>
                                     }
                                     {element.searchHits.length == 0 &&
                                         <div className={`self-start ${chatBoxClassNames}`}>
