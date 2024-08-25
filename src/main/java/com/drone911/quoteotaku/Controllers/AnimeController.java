@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,8 +65,11 @@ public class AnimeController {
                                         animeNode.setAnimeId(animeNode.getId());
                                         return animeData.getNode();
                                 }).toList());
-
-                animeList = animeListRepository.save(animeList);
+                try {
+                        animeList = animeListRepository.save(animeList);
+                } catch (DataIntegrityViolationException duplicateKeyException) {
+                        System.out.println("Duplicate key error for anime search insertion: " + duplicateKeyException.toString());
+                }
 
                 return Collections.singletonMap("result", animeList);
         }
