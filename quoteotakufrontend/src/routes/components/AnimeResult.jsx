@@ -1,10 +1,9 @@
 import axios from "axios";
 import React from "react";
 
-const AnimeResult = ({ searchHit, activeHit }) => {
+const AnimeResult = ({ searchHit, activeHit, searchHitsCount }) => {
     const [animeDetails, setAnimeDetails] = React.useState(null);
     const [isImageLoaded, setIsImageLoaded] = React.useState(false);
-
     React.useEffect(() => {
         axios.get(process.env.REACT_APP_API_PREFIX + "/anime", {
             params: {
@@ -19,12 +18,21 @@ const AnimeResult = ({ searchHit, activeHit }) => {
         })
     }, [activeHit]);
     return (
-        <div className="flex-grow flex flex-col justify-center items-center gap-10">
-            <div className="flex justify-center items-center h-64">
-                <div className="flex justify-center items-center bg-zinc-700/50 p-2 h-full w-44 rounded-lg">
-                    {animeDetails && (animeDetails.nodes && animeDetails.nodes.length > 0 ?
-                        <img className="h-64" alt={`${searchHit.animeName} Picture`} src={animeDetails.nodes[0].main_picture.large}></img> :
-                        <img className="h-64" alt="Not found" src=""></img>)
+        <div className="flex-grow flex flex-col justify-center items-center gap-10 my-4">
+            <div className="flex justify-center items-center h-64 w-full">
+                {/* Anime Pic and Name */}
+                <div className={`flex relative justify-center items-center min-w-44 min-h-64 rounded-lg ${animeDetails ? 'bg-black' : 'bg-zinc-700'}`}>
+                    {animeDetails &&
+                        <React.Fragment>
+                            <div className="text-center text-white absolute">
+                                {searchHit.animeName}
+                            </div>
+                            {animeDetails.nodes && animeDetails.nodes.length > 0 ?
+                                <img className="w-44 rounded-lg opacity-50" alt={`${searchHit.animeName} Picture`} src={animeDetails.nodes[0].main_picture.large}></img>
+                                :
+                                <img className="w-44 rounded-lg" alt="Not found" src=""></img>}
+
+                        </React.Fragment>
                     }
                     {!animeDetails &&
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} className="size-14 animate-spin-slow stroke-fuchsia-600">
@@ -33,9 +41,19 @@ const AnimeResult = ({ searchHit, activeHit }) => {
                     }
                 </div>
             </div>
-            <div className="text-center">
-                {searchHit.animeName}
+            {/* Subtitle */}
+            <div className="w-44">
+                {searchHit.searchHitSubtitle.find((elem) => { return elem.isHit }).subtitle}
             </div>
+            {/* Navigation Beads */}
+            <div className="flex flex-row gap-1">
+                {Array(searchHitsCount).fill(null).map((elem, index) => {
+                    return (
+                        <div className={`w-2 h-2  ${index == activeHit ? 'bg-fuchsia-500' : 'bg-black'} rounded-full`}></div>
+                    )
+                })}
+            </div>
+
         </div>
     )
 }
